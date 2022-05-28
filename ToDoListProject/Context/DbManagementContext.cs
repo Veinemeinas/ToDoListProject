@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ToDoListProject.Model;
 
 namespace ToDoListProject.Context
@@ -12,5 +13,6 @@ namespace ToDoListProject.Context
 
         public DbSet<User> Users { get; set; }
         public DbSet<ToDo> TodoList { get; set; }
+        public DbSet<Role> Roles { get; set; }
     }
 }
