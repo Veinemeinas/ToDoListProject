@@ -8,7 +8,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using ToDoListProject.Context;
 using ToDoListProject.Model;
 using ToDoListProject.Repositories;
 
@@ -32,7 +31,9 @@ namespace ToDoListProject.Controllers
         {
             if (_userData != null && _userData.Email != null && _userData.Password != null)
             {
-                var user = await _userRepository.GetUser(_userData.Email, _userData.Password);
+                string hash = _userRepository.EncodePassword(_userData.Password);
+
+                var user = await _userRepository.GetUser(_userData.Email, hash);
 
                 if (user != null)
                 {

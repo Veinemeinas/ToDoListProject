@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using ToDoListProject.Context;
 using ToDoListProject.Model;
@@ -23,6 +26,13 @@ namespace ToDoListProject.Repositories
                 return user;
             }
             return null;
+        }
+
+        public string EncodePassword(string password)
+        {
+            byte[] data = Encoding.ASCII.GetBytes(password);
+            data = new SHA256Managed().ComputeHash(data);
+            return Encoding.ASCII.GetString(data);
         }
     }
 }
