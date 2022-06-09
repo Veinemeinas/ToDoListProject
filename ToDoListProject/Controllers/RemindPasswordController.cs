@@ -23,9 +23,9 @@ namespace ToDoListProject.Controllers
     public class RemindPasswordController : ControllerBase
     {
         public IConfiguration _configuration;
-        private readonly DbManagementContext _dbManagementContext;
+        private readonly ToDoListDbContext _dbManagementContext;
 
-        public RemindPasswordController(IConfiguration configuration, DbManagementContext dbManagementContext)
+        public RemindPasswordController(IConfiguration configuration, ToDoListDbContext dbManagementContext)
         {
             _configuration = configuration;
             _dbManagementContext = dbManagementContext;
@@ -36,29 +36,10 @@ namespace ToDoListProject.Controllers
         {
             var token = await GetToken(user);
 
-            /*var server = _configuration["EmailConfig:Server"];
-            var port = _configuration["EmailConfig:Port"];
-            var email = _configuration["EmailConfig:Email"];
-            var password = _configuration["EmailConfig:Password"];
-
-            SmtpClient smtpClient = new SmtpClient(server, Int32.Parse(port));
-
-            smtpClient.Credentials = new System.Net.NetworkCredential(email, password);
-            smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-            smtpClient.EnableSsl = true;
-            MailMessage mail = new MailMessage();
-            mail.Body = token;
-
-            mail.From = new MailAddress(email, "MyWeb Site");
-            mail.To.Add(new MailAddress(email));
-
-            smtpClient.Send(mail);*/
-
-            var stream = token;
 
 
             var handler = new JwtSecurityTokenHandler();
-            var jsonToken = handler.ReadToken(stream);
+            var jsonToken = handler.ReadToken(token);
             var tokenS = jsonToken as JwtSecurityToken;
 
             var jti = tokenS.Claims.First(claim => claim.Type == "Email").Value;

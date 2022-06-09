@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using ToDoListProject.Configuration;
 using ToDoListProject.Context;
 using ToDoListProject.Repositories;
+using ToDoListProject.Services;
 
 namespace ToDoListProject
 {
@@ -35,9 +36,10 @@ namespace ToDoListProject
         {
             services.AddControllers();
             string connectionString = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<DbManagementContext>(option => option.UseSqlServer(connectionString));
-            services.AddTransient<UserRepository>();
-            services.AddTransient<ToDoListRepository>();
+            services.AddDbContext<ToDoListDbContext>(option => option.UseSqlServer(connectionString));
+            services.AddScoped<UserRepository>();
+            services.AddScoped<ToDoListRepository>();
+            services.AddScoped<IEmailService, EmailService>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {

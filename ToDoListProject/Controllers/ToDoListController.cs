@@ -1,10 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using ToDoListProject.Context;
@@ -15,110 +10,91 @@ using ToDoListProject.Repositories;
 
 namespace ToDoListProject.Controllers
 {
-    [Authorize]
-    [Route("api")]
     [ApiController]
+    [Authorize]
+    [Route("api/todolist")]
     public class ToDoListController : ControllerBase
     {
-        private readonly DbManagementContext _dbManagementContext;
+        private readonly ToDoListDbContext _context;
         private readonly ToDoListRepository _toDoListRepository;
-        public ToDoListController(ToDoListRepository toDoListRepository, DbManagementContext dbManagementContext)
+        public ToDoListController(ToDoListDbContext context, ToDoListRepository repository)
         {
-            _toDoListRepository = toDoListRepository;
-            _dbManagementContext = dbManagementContext;
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet]
-        [Route("GetAllToDoList")]
-        public async Task<IActionResult> GetAll()
-        {
-            var toDoList = await _dbManagementContext.TodoList.ToListAsync();
-            if (toDoList == null)
-            {
-                return BadRequest(new { error = "ToDoList not found." });
-            }
-            return Ok(toDoList);
+            _context = context;
+            _toDoListRepository = repository;
         }
 
         [HttpGet]
-        [Route("GetMyToDoList")]
-        public async Task<IActionResult> GefMy()
+        public async Task<IActionResult> GetMyList()
         {
             var userId = GetUserId();
-            var toDoList = await _dbManagementContext.TodoList.Where(t => t.UserId == userId).ToListAsync();
-            if (toDoList == null)
-            {
-                return BadRequest(new { error = "ToDoList not found." });
-            }
+            var toDoList = await _toDoListRepository.GetTodoList(userId);
             return Ok(toDoList);
+        }
+
+        [HttpGet, Route("{toDoId}")]
+        public async Task<IActionResult> GetToDo(int toDoId)
+        {
+            var userId = GetUserId();
+            var toDo = await _toDoListRepository.GetToDo(userId, toDoId);
+            return Ok(toDo);
         }
 
         [HttpPost]
-        [Route("AddToDo")]
         public async Task<IActionResult> Post([FromBody] ToDo toDo)
         {
+            toDo.Id = 0;
             toDo.UserId = GetUserId();
-            await _dbManagementContext.TodoList.AddAsync(toDo);
-            await _dbManagementContext.SaveChangesAsync();
-            return Ok();
+            var addedToDo = await _toDoListRepository.AddToDo(toDo);
+            return Created("", addedToDo);
         }
 
-        [HttpPut]
-        [Route("UpdateToDo")]
-        public async Task<IActionResult> Put([FromBody] ToDo toDo)
+        [HttpPut, Route("{toDoId}")]
+        public async Task<IActionResult> UpdateToDo(int toDoId, [FromBody] ToDo toDo)
+        {
+            if (toDo == null)
+            {
+                return BadRequest();
+            }
+
+            var userId = GetUserId();
+            ToDo newToDo = new ToDo() { Id = toDoId, Title = toDo.Title, Status = toDo.Status, UserId = userId };
+
+            var toDoAdded = await _toDoListRepository.UpDateToDo(newToDo);
+            return Ok(toDoAdded);
+        }
+
+        [HttpDelete, Route("{toDoId}")]
+        public async Task<IActionResult> RemoveToDo(int toDoId)
         {
             var userId = GetUserId();
-            var toDoFind = await _dbManagementContext.TodoList.FirstOrDefaultAsync(t => t.UserId == toDo.UserId);
-            if (toDoFind == null)
+            var removedToDo = await _toDoListRepository.RemoveToDo(userId, toDoId);
+            if (removedToDo == null)
             {
-                return BadRequest(new { error = "ToDo not found." });
-            }
-            if (toDo.UserId != userId)
-            {
-                return BadRequest(new { error = "UserId can't be changed." });
+                return NotFound();
             }
 
-            _dbManagementContext.TodoList.Update(toDo);
-            await _dbManagementContext.SaveChangesAsync();
-            return Ok();
+            return Ok(removedToDo);
         }
 
-        [HttpDelete]
-        [Route("RemoveToDo")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var userId = GetUserId();
-            var toDoFind = await _dbManagementContext.TodoList.FirstOrDefaultAsync(t => t.Id == id);
-            if (toDoFind == null)
-            {
-                return BadRequest(new { error = "ToDo not found." });
-            }
-            if (toDoFind.UserId != userId)
-            {
-                return BadRequest(new { error = "ToDo can't be removed" });
-            }
-
-            _dbManagementContext.TodoList.Remove(toDoFind);
-            await _dbManagementContext.SaveChangesAsync();
-            return Ok();
-        }
-
+        [HttpGet]
         [Authorize(Roles = "Admin")]
-        [HttpDelete]
-        [Route("RemoveOthersToDo")]
-        public async Task<IActionResult> DeleteOtherTodo(int id)
+        [Route("admin")]
+        public async Task<IActionResult> GetAll()
         {
-            var userId = GetUserId();
-            var toDoFind = await _dbManagementContext.TodoList.FirstOrDefaultAsync(t => t.Id == id);
-            if (toDoFind == null)
+            var toDoList = await _toDoListRepository.GetAllTodoList();
+            if (toDoList == null)
             {
-                return BadRequest(new { error = "ToDo not found." });
+                return NotFound();
             }
+            return Ok(toDoList);
+        }
 
-            _dbManagementContext.TodoList.Remove(toDoFind);
-            await _dbManagementContext.SaveChangesAsync();
-            return Ok();
+        [HttpDelete, Route("admin/{toDoId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemoveAnydo(int toDoId)
+        {
+            var removedToDo = await _toDoListRepository.RemoveEnyToDo(toDoId);
+            return Ok(removedToDo);
         }
 
         private int GetUserId()

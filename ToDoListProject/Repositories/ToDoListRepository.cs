@@ -9,56 +9,67 @@ namespace ToDoListProject.Repositories
 {
     public class ToDoListRepository
     {
-        private readonly DbManagementContext _dbManagementContext;
-        public ToDoListRepository(DbManagementContext dbManagementContext)
+        private readonly ToDoListDbContext _context;
+        public ToDoListRepository(ToDoListDbContext context)
         {
-            _dbManagementContext = dbManagementContext;
+            _context = context;
         }
 
         public async Task<List<ToDo>> GetTodoList(int userId)
         {
-            var user = await _dbManagementContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                return null;
-            }
-            return await _dbManagementContext.TodoList.Where(tdl => tdl.UserId == user.Id).ToListAsync();
+            return await _context.TodoList.Where(tdl => tdl.UserId == userId).ToListAsync();
         }
 
-        public async Task<List<ToDo>> GetTodoList()
+        public async Task<ToDo> GetToDo(int userId, int toDoId)
         {
-            var user = await _dbManagementContext.TodoList.ToListAsync();
-            if (user == null)
-            {
-                return null;
-            }
-            return user;
+            return await _context.TodoList.FirstOrDefaultAsync(tdl => tdl.UserId == userId && tdl.Id == toDoId);
         }
 
-        public async Task AddToDoToList(ToDo toDo)
+        public async Task<List<ToDo>> GetAllTodoList()
         {
-            await _dbManagementContext.TodoList.AddAsync(toDo);
-            await _dbManagementContext.SaveChangesAsync();
+            return await _context.TodoList.ToListAsync();
         }
 
-        public async Task UpDateToDoList(ToDo todo)
+        public async Task<ToDo> AddToDo(ToDo toDo)
         {
-            _dbManagementContext.Update(todo);
-            await _dbManagementContext.SaveChangesAsync();
+            var addedToDo = await _context.TodoList.AddAsync(toDo);
+            await _context.SaveChangesAsync();
+            return addedToDo.Entity;
         }
 
-        public async Task RemoveToDo(int userId, int toDoId)
+        public async Task<ToDo> UpDateToDo(ToDo todo)
         {
-            var user = await _dbManagementContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var updatedToDo = _context.Update(todo);
+            await _context.SaveChangesAsync();
+            return updatedToDo.Entity;
+        }
+
+        public async Task<ToDo> RemoveToDo(int userId, int toDoId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user != null)
             {
-                var toDo = await _dbManagementContext.TodoList.FirstOrDefaultAsync(r => r.Id == toDoId);
+                var toDo = await _context.TodoList.FirstOrDefaultAsync(tdl => tdl.Id == toDoId);
                 if (toDo != null)
                 {
-                    _dbManagementContext.Remove(toDo);
-                    await _dbManagementContext.SaveChangesAsync();
+                    _context.Remove(toDo);
+                    await _context.SaveChangesAsync();
+                    return toDo;
                 }
             }
+            return null;
+        }
+
+        public async Task<ToDo> RemoveEnyToDo(int toDoId)
+        {
+            var toDo = await _context.TodoList.FirstOrDefaultAsync(tdl => tdl.Id == toDoId);
+            if (toDo == null)
+            {
+                return null;
+            }
+            _context.Remove(toDo);
+            await _context.SaveChangesAsync();
+            return toDo;
         }
     }
 }

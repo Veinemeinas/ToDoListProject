@@ -8,7 +8,7 @@ using ToDoListProject.Context;
 
 namespace ToDoListProject.Migrations
 {
-    [DbContext(typeof(DbManagementContext))]
+    [DbContext(typeof(ToDoListDbContext))]
     partial class DbManagementContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

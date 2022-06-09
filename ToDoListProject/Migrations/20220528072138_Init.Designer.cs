@@ -9,7 +9,7 @@ using ToDoListProject.Context;
 
 namespace ToDoListProject.Migrations
 {
-    [DbContext(typeof(DbManagementContext))]
+    [DbContext(typeof(ToDoListDbContext))]
     [Migration("20220528072138_Init")]
     partial class Init
     {
