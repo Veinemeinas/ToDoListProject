@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ToDoListProject.Model
+namespace ToDoListProject.Dto
 {
-    public class ToDo
+    public class ToDoDto
     {
-        public int Id { get; set; }
         [Required]
         public string Title { get; set; }
-
+        [Required]
         public bool Status { get; set; }
-        public int UserId { get; set; }
     }
 }
