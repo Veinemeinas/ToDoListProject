@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using ToDoListProject.Context;
+using ToDoListProject.Dto;
 using ToDoListProject.Model;
 using ToDoListProject.Repositories;
 
@@ -26,7 +28,7 @@ namespace ToDoListProject.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMyList()
         {
-            var userId = GetUserId();
+            var userId = GetCurrentUserId();
             var toDoList = await _toDoListRepository.GetTodoList(userId);
             return Ok(toDoList);
         }
@@ -34,39 +36,40 @@ namespace ToDoListProject.Controllers
         [HttpGet, Route("{toDoId}")]
         public async Task<IActionResult> GetToDo(int toDoId)
         {
-            var userId = GetUserId();
+            var userId = GetCurrentUserId();
             var toDo = await _toDoListRepository.GetToDo(userId, toDoId);
             return Ok(toDo);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ToDo toDo)
+        public async Task<IActionResult> Post([FromBody] ToDoDto toDoDto)
         {
+            ToDo toDo = new ToDo();
             toDo.Id = 0;
-            toDo.UserId = GetUserId();
+            toDo.Title = toDoDto.Title;
+            toDo.Status = toDoDto.Status;
+            toDo.UserId = GetCurrentUserId();
             var addedToDo = await _toDoListRepository.AddToDo(toDo);
             return Created("", addedToDo);
         }
 
         [HttpPut, Route("{toDoId}")]
-        public async Task<IActionResult> UpdateToDo(int toDoId, [FromBody] ToDo toDo)
+        public async Task<IActionResult> UpdateToDo(int toDoId, [FromBody] ToDoDto toDoDto)
         {
-            if (toDo == null)
+            var userId = GetCurrentUserId();
+            if (toDoId == userId)
             {
-                return BadRequest();
+                ToDo newToDo = new ToDo() { Id = toDoId, Title = toDoDto.Title, Status = toDoDto.Status, UserId = userId };
+                var toDoAdded = await _toDoListRepository.UpDateToDo(newToDo);
+                return Ok(toDoAdded);
             }
-
-            var userId = GetUserId();
-            ToDo newToDo = new ToDo() { Id = toDoId, Title = toDo.Title, Status = toDo.Status, UserId = userId };
-
-            var toDoAdded = await _toDoListRepository.UpDateToDo(newToDo);
-            return Ok(toDoAdded);
+            return BadRequest();
         }
 
         [HttpDelete, Route("{toDoId}")]
         public async Task<IActionResult> RemoveToDo(int toDoId)
         {
-            var userId = GetUserId();
+            var userId = GetCurrentUserId();
             var removedToDo = await _toDoListRepository.RemoveToDo(userId, toDoId);
             if (removedToDo == null)
             {
@@ -76,9 +79,8 @@ namespace ToDoListProject.Controllers
             return Ok(removedToDo);
         }
 
-        [HttpGet]
+        [HttpGet, Route("admin")]
         [Authorize(Roles = "Admin")]
-        [Route("admin")]
         public async Task<IActionResult> GetAll()
         {
             var toDoList = await _toDoListRepository.GetAllTodoList();
@@ -93,13 +95,13 @@ namespace ToDoListProject.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveAnydo(int toDoId)
         {
-            var removedToDo = await _toDoListRepository.RemoveEnyToDo(toDoId);
+            var removedToDo = await _toDoListRepository.RemoveAnyToDo(toDoId);
             return Ok(removedToDo);
         }
 
-        private int GetUserId()
+        private int GetCurrentUserId()
         {
-            return int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
+            return int.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
         }
     }
 }

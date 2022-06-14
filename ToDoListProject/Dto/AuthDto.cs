@@ -2,7 +2,7 @@
 
 namespace ToDoListProject.Dto
 {
-    public class UserDto
+    public class AuthDto
     {
         [Required, EmailAddress(ErrorMessage = "Email format not valid!")]
         public string Email { get; set; }

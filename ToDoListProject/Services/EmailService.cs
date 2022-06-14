@@ -16,7 +16,7 @@ namespace ToDoListProject.Services
             _config = config;
         }
 
-        public void SendEmail(EmailDto emailDto)
+        public void SendEmail(string to, string message)
         {
             string server = _config["EmailConfig:Server"];
             int port = Convert.ToInt32(_config["EmailConfig:port"]);
@@ -25,9 +25,10 @@ namespace ToDoListProject.Services
 
             MimeMessage mimeMessage = new MimeMessage();
             mimeMessage.From.Add(MailboxAddress.Parse(email));
-            mimeMessage.To.Add(MailboxAddress.Parse(emailDto.To));
-            mimeMessage.Subject = emailDto.Subject;
-            mimeMessage.Body = new TextPart(TextFormat.Html) { Text = emailDto.Body };
+            mimeMessage.To.Add(MailboxAddress.Parse(to));
+            mimeMessage.Subject = "Pasword reset Link";
+
+            mimeMessage.Body = new TextPart(TextFormat.Html) { Text = message };
 
             using (var smtp = new SmtpClient())
             {

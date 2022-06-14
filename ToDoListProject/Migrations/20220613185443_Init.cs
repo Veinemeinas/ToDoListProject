@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ToDoListProject.Migrations
 {
@@ -26,7 +27,10 @@ namespace ToDoListProject.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Email = table.Column<string>(nullable: true),
-                    Password = table.Column<string>(nullable: true),
+                    PasswordHash = table.Column<string>(nullable: true),
+                    PasswordSalt = table.Column<string>(nullable: true),
+                    ResetPasswordToken = table.Column<string>(nullable: true),
+                    ResetTokenExpires = table.Column<DateTime>(nullable: false),
                     RoleId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
@@ -46,7 +50,7 @@ namespace ToDoListProject.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(nullable: true),
+                    Title = table.Column<string>(nullable: false),
                     Status = table.Column<bool>(nullable: false),
                     UserId = table.Column<int>(nullable: false)
                 },

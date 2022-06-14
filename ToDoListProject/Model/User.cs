@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ToDoListProject.Model
 {
@@ -6,8 +7,10 @@ namespace ToDoListProject.Model
     {
         public int Id { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
-        //public string PasswordHash { get; set; }
+        public string PasswordHash { get; set; }
+        public string PasswordSalt { get; set; }
+        public string ResetPasswordToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
         public List<ToDo> ToDoList { get; set; }
         public Role Role { get; set; }
         public static object Claims { get; internal set; }

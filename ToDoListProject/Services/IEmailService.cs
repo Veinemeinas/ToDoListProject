@@ -4,6 +4,6 @@ namespace ToDoListProject.Services
 {
     public interface IEmailService
     {
-        void SendEmail(EmailDto eMail);
+        void SendEmail(string to, string message);
     }
 }

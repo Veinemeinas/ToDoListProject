@@ -1,9 +1,10 @@
-﻿namespace ToDoListProject.Dto
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ToDoListProject.Dto
 {
     public class EmailDto
     {
-        public string To { get; set; }
-        public string Subject { get; set; }
-        public string Body { get; set; }
+        [Required, EmailAddress(ErrorMessage = "Email address is not valid!")]
+        public string Email { get; set; }
     }
 }

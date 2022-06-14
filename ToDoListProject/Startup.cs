@@ -40,17 +40,19 @@ namespace ToDoListProject
             services.AddScoped<UserRepository>();
             services.AddScoped<ToDoListRepository>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<PasswordHash>();
+            services.AddScoped<TokenService>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    //ValidAudience = Configuration["JwtConfig:Audience"],
-                    //ValidIssuer = Configuration["JwtConfig:Issuer"],
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["JwtConfig:Issuer"],
+                    ValidAudience = Configuration["JwtConfig:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtConfig:Key"]))
                 };
             });

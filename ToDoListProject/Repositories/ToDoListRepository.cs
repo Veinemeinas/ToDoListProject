@@ -60,7 +60,7 @@ namespace ToDoListProject.Repositories
             return null;
         }
 
-        public async Task<ToDo> RemoveEnyToDo(int toDoId)
+        public async Task<ToDo> RemoveAnyToDo(int toDoId)
         {
             var toDo = await _context.TodoList.FirstOrDefaultAsync(tdl => tdl.Id == toDoId);
             if (toDo == null)

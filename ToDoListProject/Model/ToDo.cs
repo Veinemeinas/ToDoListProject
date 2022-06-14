@@ -5,7 +5,7 @@ namespace ToDoListProject.Model
     public class ToDo
     {
         public int Id { get; set; }
-        [Required, MinLength(5)]
+        [Required]
         public string Title { get; set; }
 
         public bool Status { get; set; }
