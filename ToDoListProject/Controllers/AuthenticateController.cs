@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading.Tasks;
 using ToDoListProject.Dto;
 using ToDoListProject.Repositories;
@@ -11,36 +12,35 @@ namespace ToDoListProject.Controllers
     [ApiController]
     public class AuthenticateController : ControllerBase
     {
-        public IConfiguration _configuration;
         private readonly UserRepository _userRepository;
 
-        public AuthenticateController(IConfiguration configuration, UserRepository userRepository)
+        public AuthenticateController(UserRepository userRepository)
         {
-            _configuration = configuration;
             _userRepository = userRepository;
         }
 
-        [HttpPost, Route("Login")]
+        [HttpPost, Route("login")]
         public async Task<IActionResult> Login([FromBody] AuthDto auth)
         {
-            var token = await _userRepository.GenerateToken(auth.Email, auth.Password);
+            var token = await _userRepository.GenerateToken(auth);
 
-            if (token != null)
+            if (token == null)
             {
-                return Ok(token);
+                return NotFound();
             }
 
-            return BadRequest("Invalid credentials");
+            return Ok(token);
         }
 
-        [HttpPost, Route("Register")]
-        public async Task<IActionResult> CreateUser([FromBody] AuthDto authDto)
+        [HttpPost, Route("register")]
+        public async Task<IActionResult> CreateUser([FromBody] RegistedDto registedDto)
         {
-            var exist = await _userRepository.CreateUser(authDto);
+            var exist = await _userRepository.CreateUser(registedDto);
             if (!exist)
             {
-                return BadRequest();
+                return BadRequest(error: $"User with {registedDto.Email} username already exist.");
             }
+
             return Ok();
         }
     }

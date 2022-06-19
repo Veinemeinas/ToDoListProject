@@ -28,7 +28,7 @@ namespace ToDoListProject.Services
             mimeMessage.To.Add(MailboxAddress.Parse(to));
             mimeMessage.Subject = "Pasword reset Link";
 
-            mimeMessage.Body = new TextPart(TextFormat.Html) { Text = message };
+            mimeMessage.Body = new TextPart(TextFormat.Html) { Text = $"<a href=\"https://pvzmanopuslapioadresas.lt/slaptazodiokeitimopsl.js?token={message}\">Atnaujinti slaptažodį</a>" };
 
             using (var smtp = new SmtpClient())
             {

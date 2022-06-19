@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using ToDoListProject.Context;
@@ -12,24 +12,28 @@ using ToDoListProject.Repositories;
 
 namespace ToDoListProject.Controllers
 {
-    [ApiController]
-    [Authorize]
-    [Route("api/todolist")]
+    [ApiController, Authorize, Route("api/todolist")]
     public class ToDoListController : ControllerBase
     {
-        private readonly ToDoListDbContext _context;
         private readonly ToDoListRepository _toDoListRepository;
-        public ToDoListController(ToDoListDbContext context, ToDoListRepository repository)
+        private readonly IMapper _mapper;
+        public ToDoListController(ToDoListDbContext context, ToDoListRepository repository, IMapper mapper)
         {
-            _context = context;
             _toDoListRepository = repository;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetMyList()
         {
             var userId = GetCurrentUserId();
-            var toDoList = await _toDoListRepository.GetTodoList(userId);
+            var toDoList = await _toDoListRepository.GetTodoListAsync(userId);
+
+            if (toDoList == null)
+            {
+                return NotFound();
+            }
+
             return Ok(toDoList);
         }
 
@@ -37,17 +41,20 @@ namespace ToDoListProject.Controllers
         public async Task<IActionResult> GetToDo(int toDoId)
         {
             var userId = GetCurrentUserId();
-            var toDo = await _toDoListRepository.GetToDo(userId, toDoId);
+            var toDo = await _toDoListRepository.GetToDoAsync(userId, toDoId);
+
+            if (toDo == null)
+            {
+                return NotFound();
+            }
+
             return Ok(toDo);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ToDoDto toDoDto)
         {
-            ToDo toDo = new ToDo();
-            toDo.Id = 0;
-            toDo.Title = toDoDto.Title;
-            toDo.Status = toDoDto.Status;
+            var toDo = _mapper.Map<ToDo>(toDoDto);
             toDo.UserId = GetCurrentUserId();
             var addedToDo = await _toDoListRepository.AddToDo(toDo);
             return Created("", addedToDo);
@@ -57,13 +64,18 @@ namespace ToDoListProject.Controllers
         public async Task<IActionResult> UpdateToDo(int toDoId, [FromBody] ToDoDto toDoDto)
         {
             var userId = GetCurrentUserId();
-            if (toDoId == userId)
+            var todo = await _toDoListRepository.GetToDoAsync(userId, toDoId);
+
+            if (todo == null)
             {
-                ToDo newToDo = new ToDo() { Id = toDoId, Title = toDoDto.Title, Status = toDoDto.Status, UserId = userId };
-                var toDoAdded = await _toDoListRepository.UpDateToDo(newToDo);
-                return Ok(toDoAdded);
+                return NotFound();
             }
-            return BadRequest();
+
+            var toDo = _mapper.Map<ToDo>(toDoDto);
+            todo.UserId = userId;
+            var toDoAdded = await _toDoListRepository.UpDateToDo(todo);
+            return Ok(toDoAdded);
+
         }
 
         [HttpDelete, Route("{toDoId}")]
@@ -76,7 +88,7 @@ namespace ToDoListProject.Controllers
                 return NotFound();
             }
 
-            return Ok(removedToDo);
+            return NoContent();
         }
 
         [HttpGet, Route("admin")]
@@ -84,6 +96,7 @@ namespace ToDoListProject.Controllers
         public async Task<IActionResult> GetAll()
         {
             var toDoList = await _toDoListRepository.GetAllTodoList();
+
             if (toDoList == null)
             {
                 return NotFound();
@@ -96,7 +109,7 @@ namespace ToDoListProject.Controllers
         public async Task<IActionResult> RemoveAnydo(int toDoId)
         {
             var removedToDo = await _toDoListRepository.RemoveAnyToDo(toDoId);
-            return Ok(removedToDo);
+            return NoContent();
         }
 
         private int GetCurrentUserId()

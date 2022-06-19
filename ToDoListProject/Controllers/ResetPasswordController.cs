@@ -13,6 +13,7 @@ namespace ToDoListProject.Controllers
     public class ResetPasswordController : ControllerBase
     {
         private readonly UserRepository _userRepository;
+
         public ResetPasswordController(UserRepository userRepository)
         {
             _userRepository = userRepository;
