@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using ToDoListProject.Context;
@@ -54,10 +55,17 @@ namespace ToDoListProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ToDoDto toDoDto)
         {
-            var toDo = _mapper.Map<ToDo>(toDoDto);
-            toDo.UserId = GetCurrentUserId();
-            var addedToDo = await _toDoListRepository.AddToDo(toDo);
-            return Created("", addedToDo);
+            try
+            {
+                var toDo = _mapper.Map<ToDo>(toDoDto);
+                toDo.UserId = GetCurrentUserId();
+                var addedToDo = await _toDoListRepository.AddToDo(toDo);
+                return Created($"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}/{addedToDo.Id}", addedToDo);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
         [HttpPut, Route("{toDoId}")]
