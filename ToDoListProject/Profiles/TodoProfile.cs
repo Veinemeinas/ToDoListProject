@@ -9,6 +9,7 @@ namespace ToDoListProject.Profiles
         public TodoProfile()
         {
             CreateMap<ToDoDto, ToDo>();
+            CreateMap<ToDo, ToDoResponseDto>();
         }
     }
 }

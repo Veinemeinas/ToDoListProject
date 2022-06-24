@@ -36,7 +36,7 @@ namespace ToDoListProject.Controllers
         public async Task<IActionResult> CreateUser([FromBody] RegistedDto registedDto)
         {
             var exist = await _userRepository.CreateUser(registedDto);
-            if (!exist)
+            if (exist == false)
             {
                 return BadRequest(error: $"User with {registedDto.Email} username already exist.");
             }

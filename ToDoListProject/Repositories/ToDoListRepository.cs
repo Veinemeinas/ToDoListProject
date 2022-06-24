@@ -17,12 +17,14 @@ namespace ToDoListProject.Repositories
 
         public async Task<List<ToDo>> GetTodoListAsync(int userId)
         {
-            return await _context.TodoList.Where(tdl => tdl.UserId == userId).ToListAsync();
+            //return await _context.TodoList.Where(tdl => tdl.UserId == userId).ToListAsync();
+            return await _context.TodoList.FromSqlRaw<ToDo>("SELECT * FROM dbo.ToDoList").ToListAsync();
         }
 
         public async Task<ToDo> GetToDoAsync(int userId, int toDoId)
         {
             return await _context.TodoList.FirstOrDefaultAsync(tdl => tdl.UserId == userId && tdl.Id == toDoId);
+
         }
 
         public async Task<List<ToDo>> GetAllTodoList()

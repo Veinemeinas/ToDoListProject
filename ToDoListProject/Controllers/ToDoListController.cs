@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ToDoListProject.Context;
@@ -35,7 +37,9 @@ namespace ToDoListProject.Controllers
                 return NotFound();
             }
 
-            return Ok(toDoList);
+            var toDoResponseDtos = _mapper.Map<List<ToDoResponseDto>>(toDoList);
+
+            return Ok(toDoResponseDtos);
         }
 
         [HttpGet, Route("{toDoId}")]
@@ -49,7 +53,9 @@ namespace ToDoListProject.Controllers
                 return NotFound();
             }
 
-            return Ok(toDo);
+            var toDoResponseDtos = _mapper.Map<ToDoResponseDto>(toDo);
+
+            return Ok(toDoResponseDtos);
         }
 
         [HttpPost]
