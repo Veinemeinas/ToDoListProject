@@ -45,7 +45,7 @@ namespace ToDoListProject.Repositories
         public async Task<bool> ValidateToken(PasswordDto passwordDto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.ResetPasswordToken == passwordDto.Token);
-            if (user == null && user.ResetTokenExpires < DateTime.Now)
+            if (user == null || user.ResetTokenExpires < DateTime.Now)
             {
                 return false;
             }
@@ -62,30 +62,33 @@ namespace ToDoListProject.Repositories
             return true;
         }
 
-        public async Task<string> GenerateToken(string email, string password)
+        public async Task<string> GenerateToken(AuthDto authDto)
         {
-            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email.ToLower());
-            if (user != null)
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == authDto.Email);
+            if (user == null)
             {
-                var passwordHash = _passwordHash.EncryptPassword(password, Convert.FromBase64String(user.PasswordSalt));
-                if (user.PasswordHash == passwordHash)
-                {
-                    return _tokenService.CreateToken(user);
-                }
+                return null;
             }
+
+            var passwordHash = _passwordHash.EncryptPassword(authDto.Password, Convert.FromBase64String(user.PasswordSalt));
+            if (user.PasswordHash == passwordHash)
+            {
+                return _tokenService.CreateToken(user);
+            }
+
             return null;
         }
 
-        public async Task<bool> CreateUser(AuthDto authDto)
+        public async Task<bool> CreateUser(RegistedDto registerDto)
         {
-            var userFind = await _context.Users.FirstOrDefaultAsync(u => u.Email == authDto.Email);
+            var userExist = await _context.Users.FirstOrDefaultAsync(u => u.Email == registerDto.Email);
 
-            if (userFind == null)
+            if (userExist == null)
             {
                 byte[] salt = _passwordHash.GetSalt();
                 string saltString = Convert.ToBase64String(salt);
-                string hash = _passwordHash.EncryptPassword(authDto.Password, salt);
-                await _context.Users.AddAsync(new User() { Email = authDto.Email, PasswordHash = hash, PasswordSalt = saltString });
+                string hash = _passwordHash.EncryptPassword(registerDto.Password, salt);
+                await _context.Users.AddAsync(new User() { Email = registerDto.Email, PasswordHash = hash, PasswordSalt = saltString });
                 await _context.SaveChangesAsync();
                 return true;
             }

@@ -11,10 +11,10 @@ namespace ToDoListProject.Services
 {
     public class TokenService
     {
-        private readonly IConfiguration _configuration;
-        public TokenService(IConfiguration configuration)
+        private readonly IConfiguration _config;
+        public TokenService(IConfiguration config)
         {
-            _configuration = configuration;
+            _config = config;
         }
 
         public string CreateToken(User user)
@@ -26,13 +26,13 @@ namespace ToDoListProject.Services
                         new Claim(ClaimTypes.Role, user.Role.RoleName)
                     };
 
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Key"]));
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtConfig:Key"]));
             var credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
-                _configuration["JwtConfig:Issuer"],
-                _configuration["JwtConfig:Audience"],
+                _config["JwtConfig:Issuer"],
+                _config["JwtConfig:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: DateTime.UtcNow.AddMinutes(Int32.Parse(_config["JwtConfig:TokenValidityInMinutes"])),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
